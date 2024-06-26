@@ -24,9 +24,19 @@ describe('GuessTheSecretNumberChallenge', () => {
   });
 
   it('exploit', async () => {
-    /**
-     * YOUR CODE HERE
-     * */
+    const answerHash = "0xdb81b4d58595fbbbb592d3661a34cdca14d7ab379441400cbfa1b78bc447c365"
+    let secretNumber;
+
+    for (let i = 0; i <= 255; i++) {
+      const hash = utils.keccak256([i]);
+      if (answerHash === hash) {
+        secretNumber = i;
+        console.log(`The secret number is ${secretNumber}`);
+        break;
+      }
+    }
+
+    await target.guess(secretNumber, { value: utils.parseEther('1') });
 
     expect(await target.isComplete()).to.equal(true);
   });
